@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Simulador de Carrera Futbolística Pro</title>
+
+    <!-- PWA: manifest e iconos -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
+    <!-- PWA: color de tema y soporte iOS -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Carrera Futbol">
+    <meta name="description" content="Simula la carrera de un futbolista profesional: contratos, fichajes, inversiones y negocios.">
+
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-green: #22c55e;
+            --accent-blue: #3b82f6;
+            --accent-gold: #eab308;
+            --accent-red: #ef4444;
+            --accent-pink: #ec4899;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .player-sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1e1b4b 0%, #1e293b 100%);
+            border: 2px solid var(--accent-gold);
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            flex-shrink: 0;
+
+           }
+
+        .sidebar-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--accent-gold);
+            object-fit: cover;
+            background-color: #0f172a;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+        }
+
+        .sidebar-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-team {
+            font-size: 0.95rem;
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .sidebar-media-box {
+            background: rgba(234, 179, 8, 0.15);
+            border: 2px solid var(--accent-gold);
+            border-radius: 12px;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .sidebar-media-label {
+            font-size: 0.75rem;
+            color: var(--accent-gold);
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .sidebar-media-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--accent-gold);
+            line-height: 1;
+        }
+
+        .sidebar-value-box {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid var(--accent-blue);
+            border-radius: 10px;
+            padding: 8px 15px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        .sidebar-value-label {
+            font-size: 0.7rem;
+            color: var(--accent-blue);
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .sidebar-value-val {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .sidebar-bank-box {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid var(--accent-green);
+            border-radius: 10px;
+            padding: 8px 15px;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .sidebar-bank-label {
+            font-size: 0.7rem;
+            color: var(--accent-green);
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .sidebar-bank-val {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #4ade80;
+        }
+
+        .sidebar-pos-badge {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .main-panel {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            padding: 15px 20px;
+            border-bottom: 2px solid var(--border-color);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .badge-stat { color: var(--accent-green); }
+        .badge-salary { color: #34d399; }
+
+        .main-content {
+            padding: 25px;
+        }
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .input-group { margin-bottom: 20px; }
+        .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #0f172a;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .gender-options { display: flex; gap: 15px; }
+        .gender-btn {
+            flex: 1;
+            padding: 12px;
+            background: #0f172a;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .gender-btn.selected-masc { border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .gender-btn.selected-fem { border-color: var(--accent-pink); background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+
+        .faces-grid { display: flex; gap: 12px; overflow-x: auto; padding: 10px 0; }
+        .face-card {
+            min-width: 80px;
+            height: 95px;
+            background: #0f172a;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .face-card img { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; margin-bottom: 4px; }
+        .face-card span { font-size: 0.75rem; color: var(--text-muted); }
+        .face-card.selected { border-color: var(--accent-gold); background: rgba(234, 179, 8, 0.15); }
+
+        .btn {
+            background: var(--accent-green);
+            color: #000;
+            font-weight: bold;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .btn-blue { background: var(--accent-blue); color: #fff; }
+        .btn-gold { background: var(--accent-gold); color: #000; }
+        .btn-red { background: var(--accent-red); color: #fff; }
+        .btn-purple { background: #8b5cf6; color: #fff; }
+
+        .question-card {
+            background: #0f172a;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .question-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: var(--accent-blue);
+            color: #fff;
+        }
+
+        .question-tag.injury-tag {
+            background: var(--accent-red);
+            color: #fff;
+        }
+
+        .question-text { font-size: 1.1rem; line-height: 1.5; margin-bottom: 15px; }
+        .options-grid { display: flex; flex-direction: column; gap: 10px; }
+
+        .option-btn {
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .option-btn:hover { background: #334155; border-color: var(--accent-blue); }
+
+        .feedback-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            line-height: 1.4;
+        }
+        .feedback-box.positive { background: rgba(34, 197, 94, 0.2); border: 1px solid var(--accent-green); color: #4ade80; }
+        .feedback-box.negative { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--accent-red); color: #fca5a5; }
+        .feedback-box.injury { background: rgba(234, 179, 8, 0.2); border: 1px solid var(--accent-gold); color: #fde047; }
+
+        .offer-card {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .offer-details { display: flex; gap: 15px; margin-top: 8px; font-size: 0.88rem; flex-wrap: wrap; }
+        .league-badge { font-size: 0.75rem; padding: 3px 8px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .tier-top { background: #854d0e; color: #fef08a; }
+        .tier-mid { background: #1e3a8a; color: #bfdbfe; }
+        .tier-low { background: #14532d; color: #bbf7d0; }
+        .tier-amateur { background: #374151; color: #e5e7eb; }
+
+        .section-title {
+            font-size: 1rem;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+            margin-top: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .history-table-container {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .history-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+        .history-table th, .history-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-color); }
+        .history-table th { background-color: #0f172a; color: var(--accent-gold); position: sticky; top: 0; }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            margin-bottom: 20px;
+        }
+
+        .shop-card {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .shop-card h4 {
+            color: #fff;
+            font-size: 1.05rem;
+            margin-bottom: 5px;
+        }
+
+        .shop-card p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            flex: 1;
+        }
+
+        .shop-price {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--accent-green);
+            margin-bottom: 10px;
+        }
+
+        /* ===== RESPONSIVE MÓVIL ===== */
+        html, body { overflow-x: hidden; }
+
+        @media (max-width: 820px) {
+            body { padding: 10px; align-items: stretch; }
+
+            .game-wrapper {
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .player-sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .sidebar-avatar { width: 90px; height: 90px; }
+
+            .main-panel { width: 100%; min-width: 0; }
+
+            .header h1 { font-size: 1.15rem; }
+
+            .stats-bar {
+                justify-content: space-between;
+                padding: 10px;
+            }
+
+            .stat-item { flex: 1 1 28%; }
+            .stat-label { font-size: 0.62rem; }
+            .stat-value { font-size: 0.8rem; }
+
+            .main-content { padding: 15px; }
+
+            .pos-grid { grid-template-columns: 1fr; gap: 10px; }
+
+            .gender-options { flex-wrap: wrap; }
+
+            .shop-grid { grid-template-columns: 1fr; }
+
+            .offer-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .offer-card button { width: 100%; }
+
+            .history-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .history-table { font-size: 0.78rem; min-width: 560px; }
+
+            .question-text { font-size: 1rem; }
+
+            .sidebar-media-value { font-size: 2rem; }
+        }
+
+        @media (max-width: 420px) {
+            .stat-item { flex: 1 1 45%; }
+            .sidebar-name { font-size: 1.15rem; }
+            .header h1 { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-wrapper">
+
+    <!-- SIDEBAR JUGADOR -->
+    <div class="player-sidebar" id="playerSidebar" style="display: none;">
+        <img id="sbAvatar" class="sidebar-avatar" src="imagenes/cara1.png" alt="Jugador" onerror="this.src='https://via.placeholder.com/120/1e293b/ffffff?text=👤';">
+        <div class="sidebar-name" id="sbName">Alex Garcés</div>
+        <div class="sidebar-team" id="sbTeam">Real Zaragoza</div>
+        
+        <div class="sidebar-media-box">
+            <div class="sidebar-media-label">MEDIA</div>
+            <div class="sidebar-media-value" id="sbMedia">60</div>
+        </div>
+
+        <div class="sidebar-value-box">
+            <div class="sidebar-value-label">VALOR DE MERCADO</div>
+            <div class="sidebar-value-val" id="sbMarketValue">€150K</div>
+        </div>
+
+        <div class="sidebar-bank-box">
+            <div class="sidebar-bank-label">CUENTA BANCARIA 💳</div>
+            <div class="sidebar-bank-val" id="sbBankBalance">€0</div>
+        </div>
+
+        <div class="sidebar-pos-badge" id="sbPos">DC (Delantero)</div>
+
+        <button class="btn btn-purple" style="margin-top: 15px;" onclick="openShopScreen()">🛒 Tienda & Caprichos</button>
+        <button class="btn btn-blue" style="margin-top: 10px;" onclick="openInvestmentsScreen()">📈 Inversiones & Bolsa</button>
+        <button class="btn btn-gold" style="margin-top: 10px;" onclick="openBusinessScreen()">🏢 Negocios & Empresas</button>
+    </div>
+
+    <div class="main-panel">
+        <div class="header">
+            <h1>⚽ Modo Carrera Profesional Pro</h1>
+        </div>
+
+        <div class="stats-bar" id="statsBar" style="display: none;">
+            <div class="stat-item">
+                <div class="stat-label">Edad / Semana</div>
+                <div class="stat-value" id="pWeekYear">17 años (Semana 1)</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Valor Mercado</div>
+                <div class="stat-value" style="color: var(--accent-gold);" id="pMarketValue">€150K</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Sueldo / Sem</div>
+                <div class="stat-value badge-salary" id="pSalary">€2.500</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Contrato</div>
+                <div class="stat-value" id="pContractYears" style="color: var(--accent-gold);">3 años</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Partidos 🏟️</div>
+                <div class="stat-value" id="pMatches">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Goles ⚽</div>
+                <div class="stat-value badge-stat" id="pGoals">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Asist. 🅰️</div>
+                <div class="stat-value badge-stat" id="pAssists">0</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+
+            <!-- PANTALLA INICIAL -->
+            <div id="screenStart" class="screen active">
+                <h2 style="margin-bottom: 20px;">Crear Futbolista</h2>
+                
+                <div class="input-group">
+                    <label for="inputName">Nombre completo del Jugador/a:</label>
+                    <input type="text" id="inputName" placeholder="Ej. Alex Garcés" value="Alex Garcés">
+                </div>
+
+                <div class="input-group">
+                    <label>Sexo / Categoría:</label>
+                    <div class="gender-options">
+                        <div id="genderMasc" class="gender-btn selected-masc" onclick="setGender('Masculino')">♂️ Masculino</div>
+                        <div id="genderFem" class="gender-btn" onclick="setGender('Femenino')">♀️ Femenino</div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Rostro:</label>
+                    <div class="faces-grid" id="facesContainer"></div>
+                </div>
+
+                <div class="input-group">
+                    <div class="pos-grid">
+                        <div>
+                            <label for="inputMainPos">Posición Principal:</label>
+                            <select id="inputMainPos" onchange="updateSubPositions()">
+                                <option value="Delantero">Delantero</option>
+                                <option value="Centrocampista">Centrocampista</option>
+                                <option value="Defensa">Defensa</option>
+                                <option value="Portero">Portero</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="inputSubPos">Rol / Demarcación:</label>
+                            <select id="inputSubPos"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="inputStartTeam">Equipo Inicial:</label>
+                    <select id="inputStartTeam">
+                        <option value="SD Huesca B">SD Huesca B (Regional)</option>
+                        <option value="Real Zaragoza B">Real Zaragoza B (Regional)</option>
+                        <option value="CD Teruel B">CD Teruel B (Regional)</option>
+                        <option value="Utebo FC">Utebo FC (3ª RFEF)</option>
+                        <option value="Real Zaragoza">Real Zaragoza (2ª División)</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="startGame()">Comenzar Carrera</button>
+            </div>
+
+            <!-- PANTALLA JUEGO -->
+            <div id="screenGame" class="screen">
+                <div id="feedbackBox" class="feedback-box"></div>
+
+                <div class="question-card" id="questionCardContainer">
+                    <span class="question-tag" id="qCategory">Partido</span>
+                    <div class="question-text" id="qText">Cargando situación...</div>
+                    <div class="options-grid" id="qOptions"></div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h3 style="margin-bottom: 8px; font-size: 0.95rem; color: var(--accent-gold);">📜 Historial de Temporadas</h3>
+                    <div class="history-table-container">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>Año</th>
+                                    <th>Edad</th>
+                                    <th>Equipo</th>
+                                    <th>Valor</th>
+                                    <th>Sueldo/sem</th>
+                                    <th>Media</th>
+                                    <th>PJ</th>
+                                    <th>Goles</th>
+                                    <th>Asist.</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANTALLA TIENDA Y CAPRICHOS -->
+            <div id="screenShop" class="screen">
+                <h2>🛒 Tienda de Caprichos & Inversiones Pro</h2>
+                <p style="color: var(--text-muted); margin-bottom: 15px; font-size:0.9rem;">
+                    Invierte tu sueldo en estilo de vida o entrena duro contratando servicios profesionales para subir tu media permanentemente de forma rápida.
+                </p>
+
+                <div class="section-title">⚡ Inversiones de Rendimiento (Afectan a la Media)</div>
+                <div class="shop-grid" id="perfItemsGrid"></div>
+
+                <div class="section-title">💎 Caprichos y Lujos (Estatus y Estilo de Vida)</div>
+                <div class="shop-grid" id="luxuryItemsGrid"></div>
+
+                <button class="btn" style="margin-top: 15px;" onclick="returnToGame()">Volver al Partido / Carrera ➡️</button>
+            </div>
+
+            <!-- PANTALLA INVERSIONES -->
+            <div id="screenInvestments" class="screen">
+                <h2>📈 Mercado de Inversiones</h2>
+                <p style="color: var(--text-muted); margin-bottom: 15px; font-size:0.9rem;">
+                    Invierte tu capital según tu tolerancia al riesgo[cite: 3]. Los beneficios se calculan e ingresan al finalizar cada semana[cite: 3].
+                </p>
+                <div class="input-group">
+                    <label for="investAmountInput">Cantidad a invertir (€):</label>
+                    <input type="number" id="investAmountInput" value="10000" min="1000" step="5000">
+                </div>
+                <div class="shop-grid" id="investGrid"></div>
+                <div id="activeInvestmentsSummary" style="background:#0f172a; padding:15px; border-radius:8px; margin-top:15px; border:1px solid var(--border-color);"></div>
+                <button class="btn" style="margin-top: 15px;" onclick="returnToGame()">Volver al Partido / Carrera ➡️</button>
+            </div>
+
+            <!-- PANTALLA EMPRESAS -->
+            <div id="screenBusiness" class="screen">
+                <h2>🏢 Adquisición de Empresas</h2>
+                <p style="color: var(--text-muted); margin-bottom: 15px; font-size:0.9rem;">
+                    Compra negocios consolidados[cite: 3]. Te aportarán un flujo de ingresos extra fijo de manera semanal de por vida[cite: 3].
+                </p>
+                <div class="shop-grid" id="businessGrid"></div>
+                <button class="btn" style="margin-top: 15px;" onclick="returnToGame()">Volver al Partido / Carrera ➡️</button>
+            </div>
+
+            <!-- PANTALLA FICHAJES Y RENOVACIÓN -->
+            <div id="screenTransfers" class="screen">
+                <h2>Mercado de Fichajes y Contratos</h2>
+                <p style="color: var(--text-muted); margin-bottom: 15px; font-size:0.9rem;">
+                    Comienza una nueva temporada. Revisa si tu club te ofrece la renovación por buen rendimiento o busca nuevos horizontes en el mercado.
+                </p>
+
+                <div id="renewalContainer"></div>
+                
+                <div class="section-title">🌍 Ofertas de otros Clubes</div>
+                <div id="offersList"></div>
+
+                <button class="btn" style="margin-top: 15px;" onclick="returnToGame()">Continuar con la Temporada ➡️</button>
+            </div>
+
+            <!-- PANTALLA RETIRO -->
+            <div id="screenEnd" class="screen" style="text-align: center;">
+                <h2 style="color: var(--accent-gold); font-size: 2rem; margin-bottom: 10px;">🏆 ¡Retiro Profesional!</h2>
+                <p id="endSummary" style="font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6;"></p>
+
+                <div class="history-table-container" style="max-height: 250px; margin-bottom: 20px;">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Año</th>
+                                <th>Edad</th>
+                                <th>Equipo</th>
+                                <th>Sueldo/sem</th>
+                                <th>Media</th>
+                                <th>PJ</th>
+                                <th>Goles</th>
+                                <th>Asist.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="endHistoryTableBody"></tbody>
+                    </table>
+                </div>
+
+                <button class="btn btn-gold" onclick="location.reload()">Jugar Otra Carrera</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUB_POSITIONS = {
+        "Delantero": [{ code: "DC", name: "DC - Delantero Centro" }, { code: "EI", name: "EI - Extremo Izquierdo" }, { code: "ED", name: "ED - Extremo Derecho" }],
+        "Centrocampista": [{ code: "MC", name: "MC - Mediocentro" }, { code: "MCO", name: "MCO - Mediapunta" }, { code: "MCD", name: "MCD - Pivote" }],
+        "Defensa": [{ code: "DFC", name: "DFC - Central" }, { code: "LD", name: "LD - Lateral Derecho" }, { code: "LI", name: "LI - Lateral Izquierdo" }],
+        "Portero": [{ code: "POR", name: "POR - Guardameta" }]
+    };
+
+    const FACES_MASC = [
+        { id: "cara1", filename: "imagenes/cara1.png", label: "Rostro 1" },
+        { id: "cara2", filename: "imagenes/cara2.png", label: "Rostro 2" },
+        { id: "cara3", filename: "imagenes/cara3.png", label: "Rostro 3" },
+        { id: "cara4", filename: "imagenes/cara4.png", label: "Rostro 4" },
+        { id: "cara5", filename: "imagenes/cara5.png", label: "Rostro 5" }
+    ];
+
+    const FACES_FEM = [
+        { id: "cara_f1", filename: "imagenes/cara_f1.png", label: "Rostro F1" },
+        { id: "cara_f2", filename: "imagenes/cara_f2.png", label: "Rostro F2" },
+        { id: "cara_f3", filename: "imagenes/cara_f3.png", label: "Rostro F3" },
+        { id: "cara_f4", filename: "imagenes/cara_f4.png", label: "Rostro F4" },
+        { id: "cara_f5", filename: "imagenes/cara_f5.png", label: "Rostro F5" }
+    ];
+
+    const LEAGUES = {
+        AMATEUR: { name: "Regional / 3ª RFEF", tierKey: "AMATEUR", tierClass: "tier-amateur", maxAffordableValue: 1000000 },
+        LOW: { name: "2ª División / Ligas Menores", tierKey: "LOW", tierClass: "tier-low", maxAffordableValue: 20000000 },
+        MID: { name: "1ª División", tierKey: "MID", tierClass: "tier-mid", maxAffordableValue: 120000000 },
+        TOP: { name: "Champions League / Elite", tierKey: "TOP", tierClass: "tier-top", maxAffordableValue: 500000000 }
+    };
+
+    const TEAMS = [
+        { name: "SD Huesca B", league: LEAGUES.AMATEUR, minMedia: 45 },
+        { name: "Real Zaragoza B", league: LEAGUES.AMATEUR, minMedia: 46 },
+        { name: "CD Teruel B", league: LEAGUES.AMATEUR, minMedia: 40 },
+        { name: "Utebo FC", league: LEAGUES.AMATEUR, minMedia: 50 },
+        { name: "Deportivo Aragón", league: LEAGUES.AMATEUR, minMedia: 48 },
+        { name: "Barbastro", league: LEAGUES.AMATEUR, minMedia: 44 },
+        { name: "CD Ebro", league: LEAGUES.AMATEUR, minMedia: 46 },
+        { name: "SD Tarazona", league: LEAGUES.AMATEUR, minMedia: 49 },
+        { name: "CD Binéfar", league: LEAGUES.AMATEUR, minMedia: 42 },
+        { name: "AD Almudevar", league: LEAGUES.AMATEUR, minMedia: 41 },
+        { name: "CD Cuarte", league: LEAGUES.AMATEUR, minMedia: 43 },
+        { name: "CF Illueca", league: LEAGUES.AMATEUR, minMedia: 42 },
+        { name: "CD Brea", league: LEAGUES.AMATEUR, minMedia: 45 },
+        { name: "UD Montecarlo", league: LEAGUES.AMATEUR, minMedia: 40 },
+        { name: "CF Calamocha", league: LEAGUES.AMATEUR, minMedia: 41 },
+        { name: "CD Zuera", league: LEAGUES.AMATEUR, minMedia: 40 },
+        { name: "AD Sabiñánigo", league: LEAGUES.AMATEUR, minMedia: 40 },
+        { name: "CD Cariñena", league: LEAGUES.AMATEUR, minMedia: 39 },
+        { name: "UD Fraga", league: LEAGUES.AMATEUR, minMedia: 41 },
+        { name: "CF Épila", league: LEAGUES.AMATEUR, minMedia: 43 },
+        { name: "CD Sariñena", league: LEAGUES.AMATEUR, minMedia: 40 },
+        { name: "AD San Juan", league: LEAGUES.AMATEUR, minMedia: 42 },
+        { name: "CD Subiza", league: LEAGUES.AMATEUR, minMedia: 41 },
+        { name: "CD Arnedo", league: LEAGUES.AMATEUR, minMedia: 42 },
+        { name: "SD Oyonesa", league: LEAGUES.AMATEUR, minMedia: 39 },
+
+        { name: "SD Huesca", league: LEAGUES.LOW, minMedia: 65 },
+        { name: "Real Zaragoza", league: LEAGUES.LOW, minMedia: 68 },
+        { name: "Racing de Santander", league: LEAGUES.LOW, minMedia: 69 },
+        { name: "SD Eibar", league: LEAGUES.LOW, minMedia: 70 },
+        { name: "Real Sporting", league: LEAGUES.LOW, minMedia: 68 },
+        { name: "CD Tenerife", league: LEAGUES.LOW, minMedia: 67 },
+        { name: "Real Valladolid", league: LEAGUES.LOW, minMedia: 71 },
+        { name: "Elche CF", league: LEAGUES.LOW, minMedia: 70 },
+        { name: "Levante UD", league: LEAGUES.LOW, minMedia: 72 },
+        { name: "Granada CF", league: LEAGUES.LOW, minMedia: 71 },
+        { name: "Almería", league: LEAGUES.LOW, minMedia: 72 },
+        { name: "Cádiz CF", league: LEAGUES.LOW, minMedia: 70 },
+        { name: "Real Oviedo", league: LEAGUES.LOW, minMedia: 69 },
+        { name: "Albacete BP", league: LEAGUES.LOW, minMedia: 67 },
+        { name: "Burgos CF", league: LEAGUES.LOW, minMedia: 68 },
+        { name: "CD Mirandés", league: LEAGUES.LOW, minMedia: 66 },
+        { name: "FC Cartagena", league: LEAGUES.LOW, minMedia: 66 },
+        { name: "CD Eldense", league: LEAGUES.LOW, minMedia: 65 },
+        { name: "Racing de Ferrol", league: LEAGUES.LOW, minMedia: 67 },
+        { name: "CD Castellón", league: LEAGUES.LOW, minMedia: 68 },
+        { name: "Málaga CF", league: LEAGUES.LOW, minMedia: 67 },
+        { name: "Córdoba CF", league: LEAGUES.LOW, minMedia: 66 },
+        { name: "Deportivo de La Coruña", league: LEAGUES.LOW, minMedia: 70 },
+        { name: "FC Andorra", league: LEAGUES.LOW, minMedia: 66 },
+        { name: "AD Alcorcón", league: LEAGUES.LOW, minMedia: 65 },
+        { name: "SD Amorebieta", league: LEAGUES.LOW, minMedia: 64 },
+
+        { name: "Real Betis", league: LEAGUES.MID, minMedia: 76 },
+        { name: "Sevilla FC", league: LEAGUES.MID, minMedia: 78 },
+        { name: "Villarreal CF", league: LEAGUES.MID, minMedia: 80 },
+        { name: "Real Sociedad", league: LEAGUES.MID, minMedia: 79 },
+        { name: "Athletic Club", league: LEAGUES.MID, minMedia: 79 },
+        { name: "Valencia CF", league: LEAGUES.MID, minMedia: 75 },
+        { name: "Atlético de Madrid", league: LEAGUES.MID, minMedia: 83 },
+        { name: "RC Celta", league: LEAGUES.MID, minMedia: 76 },
+        { name: "CA Osasuna", league: LEAGUES.MID, minMedia: 76 },
+        { name: "Getafe CF", league: LEAGUES.MID, minMedia: 74 },
+        { name: "RCD Mallorca", league: LEAGUES.MID, minMedia: 75 },
+        { name: "Rayo Vallecano", league: LEAGUES.MID, minMedia: 75 },
+        { name: "Girona FC", league: LEAGUES.MID, minMedia: 78 },
+        { name: "Deportivo Alavés", league: LEAGUES.MID, minMedia: 73 },
+        { name: "UD Las Palmas", league: LEAGUES.MID, minMedia: 74 },
+        { name: "Leganés", league: LEAGUES.MID, minMedia: 72 },
+        { name: "Espanyol", league: LEAGUES.MID, minMedia: 74 },
+        { name: "Lazio", league: LEAGUES.MID, minMedia: 79 },
+        { name: "Fiorentina", league: LEAGUES.MID, minMedia: 80 },
+        { name: "Torino", league: LEAGUES.MID, minMedia: 76 },
+        { name: "Bologna", league: LEAGUES.MID, minMedia: 78 },
+        { name: "OGC Nice", league: LEAGUES.MID, minMedia: 77 },
+        { name: "Olympique de Marsella", league: LEAGUES.MID, minMedia: 81 },
+        { name: "AS Monaco", league: LEAGUES.MID, minMedia: 81 },
+        { name: "Eintracht Frankfurt", league: LEAGUES.MID, minMedia: 80 },
+        { name: "Wolfsburg", league: LEAGUES.MID, minMedia: 77 },
+        { name: "Real Betis Balompié B", league: LEAGUES.MID, minMedia: 72 },
+
+        { name: "Real Madrid", league: LEAGUES.TOP, minMedia: 88 },
+        { name: "FC Barcelona", league: LEAGUES.TOP, minMedia: 87 },
+        { name: "Manchester City", league: LEAGUES.TOP, minMedia: 90 },
+        { name: "Bayern de Múnich", league: LEAGUES.TOP, minMedia: 88 },
+        { name: "Paris Saint-Germain", league: LEAGUES.TOP, minMedia: 87 },
+        { name: "Arsenal FC", league: LEAGUES.TOP, minMedia: 86 },
+        { name: "Liverpool FC", league: LEAGUES.TOP, minMedia: 88 },
+        { name: "Inter de Milán", league: LEAGUES.TOP, minMedia: 85 },
+        { name: "AC Milan", league: LEAGUES.TOP, minMedia: 84 },
+        { name: "Juventus", league: LEAGUES.TOP, minMedia: 84 },
+        { name: "Borussia Dortmund", league: LEAGUES.TOP, minMedia: 85 },
+        { name: "Bayer Leverkusen", league: LEAGUES.TOP, minMedia: 86 },
+        { name: "Manchester United", league: LEAGUES.TOP, minMedia: 83 },
+        { name: "Chelsea FC", league: LEAGUES.TOP, minMedia: 84 },
+        { name: "Tottenham Hotspur", league: LEAGUES.TOP, minMedia: 84 },
+        { name: "Atlético de Madrid (Elite)", league: LEAGUES.TOP, minMedia: 85 },
+        { name: "Napoli", league: LEAGUES.TOP, minMedia: 84 },
+        { name: "Real Madrid (Leyenda)", league: LEAGUES.TOP, minMedia: 91 },
+        { name: "FC Barcelona (Leyenda)", league: LEAGUES.TOP, minMedia: 90 },
+        { name: "Manchester City (Leyenda)", league: LEAGUES.TOP, minMedia: 92 },
+        { name: "Arsenal (Elite)", league: LEAGUES.TOP, minMedia: 87 },
+        { name: "RB Leipzig", league: LEAGUES.TOP, minMedia: 82 },
+        { name: "Atalanta", league: LEAGUES.TOP, minMedia: 83 },
+        { name: "Benfica", league: LEAGUES.TOP, minMedia: 81 },
+        { name: "Porto", league: LEAGUES.TOP, minMedia: 81 },
+        { name: "Sporting CP", league: LEAGUES.TOP, minMedia: 82 },
+        { name: "Galatasaray", league: LEAGUES.TOP, minMedia: 80 }
+    ];
+
+    const SHOP_ITEMS = [
+        { id: "gym_casa", name: "Gimnasio Personal en Casa", type: "perf", cost: 4000, mediaBoost: 2, desc: "Instalación avanzada en tu domicilio para subir +2 de media directa.", bought: false },
+        { id: "entrenador_personal", name: "Entrenador Personal Exclusivo", type: "perf", cost: 8000, mediaBoost: 3, desc: "Sesiones de técnica intensas que incrementan tu media +3.", bought: false },
+        { id: "clinica_alto_rend", name: "Clínica de Alto Rendimiento", type: "perf", cost: 18000, mediaBoost: 4, desc: "Tratamiento biomecánico avanzado que sube +4 tu media de golpe.", bought: false },
+        { id: "psicologo_deportivo", name: "Psicólogo Deportivo de Élite", type: "perf", cost: 30000, mediaBoost: 5, desc: "Optimización mental absoluta para rendir al máximo (+5 media).", bought: false },
+
+        { id: "reloj_lujo", name: "Reloj Suizo de Lujo ⌚", type: "luxury", cost: 8000, desc: "Un accesorio elegante para lucir en las ruedas de prensa.", bought: false },
+        { id: "coche_deporte", name: "Coche Deportivo 🏎️", type: "luxury", cost: 65000, desc: "Llega a los entrenamientos marcando estilo con un deportivo biplaza.", bought: false },
+        { id: "moto_alta_gama", name: "Moto Deportiva de Alta Gama 🏍️", type: "luxury", cost: 22000, desc: "Velocidad y agilidad sobre dos ruedas para tus desplazamientos urbanos.", bought: false },
+        { id: "chalet_lujo", name: "Chalet con Piscina 🏡", type: "luxury", cost: 450000, desc: "Una mansión impresionante con todas las comodidades modernas.", bought: false },
+        { id: "yate_privado", name: "Yate Privado 🛥️", type: "luxury", cost: 2000000, desc: "Disfruta de tus vacaciones de verano navegando por el Mediterráneo.", bought: false },
+        { id: "atico_centro", name: "Ático Exclusivo en el Centro 🏙️", type: "luxury", cost: 850000, desc: "Vistas panorámicas increíbles desde lo más alto de la ciudad.", bought: false },
+        { id: "coleccion_superautos", name: "Colección de Superdeportivos 🚘", type: "luxury", cost: 3500000, desc: "Un garaje privado repleto de los bólidos más exclusivos del planeta.", bought: false }
+    ];
+
+    const INVESTMENT_OPTIONS = [
+        { id: "inv_banco", name: "Cuentas y Bonos del Estado", risk: "Muy Bajo", desc: "Rentabilidad segura y constante sin sobresaltos.", returnRate: 0.02 },
+        { id: "inv_inmo", name: "Fondo Inmobiliario Urbano", risk: "Moderado", desc: "Compra de inmuebles residenciales en zonas en crecimiento.", returnRate: 0.06 },
+        { id: "inv_acciones", name: "Mercado de Acciones Tecnológicas", risk: "Alto", desc: "Empresas tecnológicas punteras con alta volatilidad.", returnRate: 0.15 },
+        { id: "inv_cripto", name: "Cartera de Criptoactivos", risk: "Muy Alto", desc: "Mercado especulativo extremo. Puedes duplicar o perder gran parte.", returnRate: 0.35 }
+    ];
+
+    const BUSINESS_OPTIONS = [
+        { id: "biz_bar", name: "Cafetería / Bar Céntrico ☕", cost: 80000, weeklyIncome: 1200, owned: false },
+        { id: "biz_gimnasio", name: "Franquicia de Gimnasios 🏋️‍♂️", cost: 300000, weeklyIncome: 5500, owned: false },
+        { id: "biz_hotel", name: "Hotel Boutique Turístico 🏨", cost: 1500000, weeklyIncome: 28000, owned: false },
+        { id: "biz_club", name: "Accionariado Club de eSports 🎮", cost: 5000000, weeklyIncome: 110000, owned: false }
+    ];
+
+    const MATCH_QUESTIONS_BANK = [
+        {
+            category: "Disparo",
+            text: "Balón suelto en la frontal del área. La zaga no encima. ¿Qué decisión tomas?",
+            options: [
+                { text: "Zapatazo potente buscando la escuadra.", mediaChange: 0.6, msg: "¡Gran golpeo que encuentra portería! Vas sumando confianza a gran velocidad." },
+                { text: "Pase raso de seguridad hacia el interior.", mediaChange: 0.3, msg: "Aseguraste el balón con inteligencia." },
+                { text: "Regatear de forma innecesaria al central.", mediaChange: -0.3, injuryRisk: true, msg: "¡Te arriesgaste demasiado y te robaron el balón!" }
+            ]
+        },
+        {
+            category: "Pase y Visión",
+            text: "Ves el desmarque al espacio de tu extremo en una contra rápida.",
+            options: [
+                { text: "Pase filtrado milimétrico entre líneas.", mediaChange: 0.6, msg: "¡Excelente asistencia que desarmó por completo a la defensa rival!" },
+                { text: "Balón largo orientativo por alto.", mediaChange: 0.3, msg: "El balón llegó correctamente a los dominios del compañero." },
+                { text: "Conducir en exceso el esférico de forma individualista.", mediaChange: -0.3, injuryRisk: true, msg: "Te precipitaste en la decisión." }
+            ]
+        },
+        {
+            category: "Defensa y Cobertura",
+            text: "El extremo rival te reta en velocidad dentro del área en el minuto 90.",
+            options: [
+                { text: "Temporizar con inteligencia manteniendo la distancia justa.", mediaChange: 0.6, msg: "¡Magnífica lectura defensiva! Robaste limpio." },
+                { text: "Despejar el balón a la grada con potencia.", mediaChange: 0.3, msg: "Solución expeditiva y sin complicaciones." },
+                { text: "Entrada a destiempo desesperada al suelo.", mediaChange: -0.3, injuryRisk: true, msg: "¡Mala decisión táctica! Arrollaste al rival." }
+            ]
+        },
+        {
+            category: "Táctica y Posicionamiento",
+            text: "El míster te pide en el descanso cambiar de posición para desahogar al equipo.",
+            options: [
+                { text: "Asumir el rol con disciplina táctica y esfuerzo total.", mediaChange: 0.5, msg: "¡Clave en el esquema! El equipo lo agradeció enormemente." },
+                { text: "Cumplir de forma discreta sin arriesgar.", mediaChange: 0.3, msg: "Partido correcto sin mayores sobresaltos." },
+                { text: "Quejarte abiertamente al entrenador en el banquillo.", mediaChange: -0.4, msg: "Generaste mal ambiente." }
+            ]
+        },
+        {
+            category: "Balón Parado",
+            text: "Hay falta directa peligrosa a favor en la frontal del área grande.",
+            options: [
+                { text: "Pedir el esférico y golpear con rosca a la cruceta.", mediaChange: 0.6, msg: "¡Golazo impresionante por toda la escuadra!" },
+                { text: "Colgar un centro medido al corazón del área.", mediaChange: 0.4, msg: "Asistencia perfecta que remató tu compañero." },
+                { text: "Tirar flojo a las manos del guardameta.", mediaChange: -0.3, msg: "Oportunidad desperdiciada a balón parado." }
+            ]
+        },
+        {
+            category: "Presión Alta",
+            text: "El portero rival duda en la salida de balón bajo presión asfixiante.",
+            options: [
+                { text: "Sprint explosivo para bloquear su despeje en carrera.", mediaChange: 0.6, msg: "¡Rebañaste el balón y entró llorando a la red!" },
+                { text: "Acosar la línea de pase cercana.", mediaChange: 0.3, msg: "Forzaste el error en salida del rival." },
+                { text: "Tropezar en la carrera por falta de chispa.", mediaChange: -0.3, msg: "Hiciste falta evitable." }
+            ]
+        },
+        {
+            category: "Creación de Juego",
+            text: "Recibes de espaldas con un central pegado a tu espalda en tres cuartos de cancha.",
+            options: [
+                { text: "Control orientado de tacón dejándome perfilado.", mediaChange: 0.5, msg: "¡Obra de arte técnica que rompió la presión!" },
+                { text: "Protección corporal clásica de seguridad y descarga corta.", mediaChange: 0.3, msg: "Posesión segura para mantener el ritmo." },
+                { text: "Perder el esférico por soltar tarde el balón.", mediaChange: -0.4, msg: "Contragolpe rival originado por tu pérdida." }
+            ]
+        },
+        {
+            category: "Liderazgo en el Campo",
+            text: "El equipo va perdiendo por la mínima y se nota el nerviosismo general.",
+            options: [
+                { text: "Echarse el equipo a la espalda tirando de garra y jerarquía.", mediaChange: 0.6, msg: "¡Liderazgo absoluto! Empatasteis gracias a tu empuje." },
+                { text: "Animar con aplausos constantes a los compañeros.", mediaChange: 0.3, msg: "Mantuviste la unión del grupo intacta." },
+                { text: "Desquiciarte con los compañeros y protestar al colegiado.", mediaChange: -0.4, msg: "Te amonestaron por protestar." }
+            ]
+        },
+        {
+            category: "1 contra 1",
+            text: "Te enfrentas al lateral rival en la banda izquierda con espacios para encarar.",
+            options: [
+                { text: "Bicicleta rápida y cambio de ritmo imparable hacia dentro.", mediaChange: 0.6, msg: "¡Dejaste sentado al defensor con un regate estelar!" },
+                { text: "Amagar el centro y buscar falta lateral.", mediaChange: 0.3, msg: "Conseguiste una falta muy prometedora." },
+                { text: "Estrellar el balón directamente contra las piernas del defensa.", mediaChange: -0.3, msg: "Lectura deficiente." }
+            ]
+        },
+        {
+            category: "Concentración Defensiva",
+            text: "Saque de esquina en contra en el minuto 88 defendiendo un resultado ajustado.",
+            options: [
+                { text: "Ganar el duelo aéreo defensivo con contundencia absoluta.", mediaChange: 0.5, msg: "¡Despeje providencial que salvó los tres puntos!" },
+                { text: "Estorbar lo justo al delantero rival en el primer palo.", mediaChange: 0.3, msg: "Cumpliste con tu marca defensiva." },
+                { text: "Perder la marca de tu par en el corazón del área.", mediaChange: -0.4, injuryRisk: true, msg: "¡Gol en contra por despiste!" }
+            ]
+        },
+        {
+            category: "Transición Ofensiva",
+            text: "Recuperas un balón dividido en el centro del campo con todo el equipo rival volcado.",
+            options: [
+                { text: "Conducción en diagonal en velocidad abriendo a banda.", mediaChange: 0.6, msg: "¡Generaste una ocasión clarísima de gol!" },
+                { text: "Pase en corto al mediocentro defensivo para calmar.", mediaChange: 0.3, msg: "Transición ordenada sin riesgos." },
+                { text: "Pérdida absurda por intentar un taconazo estético.", mediaChange: -0.4, msg: "Desperdiciaste una contra letal." }
+            ]
+        },
+        {
+            category: "Duelo Aéreo",
+            text: "Balón colgado al área pequeña en busca de tu cabeza.",
+            options: [
+                { text: "Imponerme con potencia salta-muros y conectar testarazo.", mediaChange: 0.6, msg: "¡Imparable por arriba! Remate directo a la red." },
+                { text: "Peinar el balón hacia la zona de segunda jugada.", mediaChange: 0.3, msg: "Prolongación inteligente." },
+                { text: "Calcular mal el tiempo del salto y errar el contacto.", mediaChange: -0.3, msg: "No pudiste conectar con precisión." }
+            ]
+        },
+        {
+            category: "Gestión del Tempo",
+            text: "Vais ganando en el tiempo de descuento y el rival presiona con todo.",
+            options: [
+                { text: "Retener el balón junto al banderín de córner con picardía.", mediaChange: 0.5, msg: "¡Maestría absoluta consumiendo los minutos finales!" },
+                { text: "Tirar el balón lejos con criterio defensivo.", mediaChange: 0.3, msg: "Alejaste el peligro." },
+                { text: "Arriesgar un regate estúpido en defensa que casi cuesta gol.", mediaChange: -0.4, msg: "Casi provocas un susto innecesario." }
+            ]
+        },
+        {
+            category: "Rendimiento Físico",
+            text: "Minuto 80 de partido exigente con máxima humedad y desgaste físico.",
+            options: [
+                { text: "Sprint de 50 metros para cortar una contra rival providencial.", mediaChange: 0.6, msg: "¡Despliegue físico titánico que levantó a la grada!" },
+                { text: "Dosificar las carreras manteniendo la posición táctica.", mediaChange: 0.3, msg: "Buen trabajo de desgaste." },
+                { text: "Pájara física y desaceleración evidente en defensa.", mediaChange: -0.4, msg: "Sufriste el cansancio acumulado." }
+            ]
+        },
+        {
+            category: "Instinto Goleador",
+            text: "Disparo lejano de un compañero que el portero deja muerto en el área chica.",
+            options: [
+                { text: "Llegada en tromba anticipándome a los centrales para empujarla.", mediaChange: 0.7, msg: "¡Olfato de killer nato! Gol de cazador de área." },
+                { text: "Cargar el remate de seguridad por si acaso.", mediaChange: 0.3, msg: "Estuviste atento a la segunda jugada." },
+                { text: "Llegar tarde al rechace por falta de picardía.", mediaChange: -0.3, msg: "El defensa despejó in extremis." }
+            ]
+        }
+    ];
+
+    const FREE_AGENT_QUESTIONS_BANK = [
+        {
+            category: "Entrenamiento Personal",
+            text: "Estás sin equipo y toca sesión matutina en solitario en el gimnasio. ¿En qué enfocas el entreno?",
+            options: [
+                { text: "Fuerza explosiva intensa y pliometría pesada.", mediaChange: 0.5, msg: "Ganaste fantásticas sensaciones físicas para el mercado." },
+                { text: "Sesión moderada de prevención y core.", mediaChange: 0.3, msg: "Mantuviste el tono físico estable con éxito." },
+                { text: "Saltarse el entrenamiento y excederse con la fiesta.", mediaChange: -0.4, msg: "Perdiste un poco de forma física por indisciplina." }
+            ]
+        },
+        {
+            category: "Nutrición y Descanso",
+            text: "Tu nutricionista te diseña el plan alimenticio semanal mientras buscas club. ¿Qué sigues?",
+            options: [
+                { text: "Dieta estricta de alto rendimiento y descanso estricto.", mediaChange: 0.5, msg: "Optimizaste notablemente tu estado corporal." },
+                { text: "Dieta equilibrada estándar.", mediaChange: 0.3, msg: "Mantuviste tu peso ideal." },
+                { text: "Comida rápida y hábitos sedentarios nocturnos.", mediaChange: -0.4, msg: "Descuidaste tu salud." }
+            ]
+        }
+    ];
+
+    let player = {
+        name: "Alex Garcés",
+        gender: "Masculino",
+        selectedFace: "imagenes/cara1.png",
+        mainPos: "Delantero",
+        subPos: "DC",
+        team: null,
+        media: 60,
+        weeklySalary: 1200,
+        bankBalance: 5000,
+        contractYearsLeft: 3,
+        marketValue: 150000,
+        totalMatches: 0,
+        totalGoals: 0,
+        totalAssists: 0,
+        age: 16,
+        year: 1,
+        week: 1,
+        mediaAccumulator: 0,
+        injuryWeeksLeft: 0,
+        questionsAnswered: 0,
+        history: []
+    };
+
+    let generatedOffers = [];
+    let renewalOffer = null;
+    let playerInvestments = [];
+    let activeBusinesses = [];
+
+    function shuffleArray(array) {
+        let shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
+    function calculateMarketValue(media, age, contractYearsLeft, mainPos) {
+        if (media < 50) return 25000;
+        
+        let baseValue = 0;
+        if (media <= 65) {
+            baseValue = 150000 * Math.pow(1.08, media - 60);
+        } else if (media <= 75) {
+            baseValue = 1200000 * Math.pow(1.12, media - 65);
+        } else if (media <= 85) {
+            baseValue = 12000000 * Math.pow(1.18, media - 75);
+        } else {
+            baseValue = 65000000 * Math.pow(1.25, media - 85);
+        }
+
+        let ageMult = 1.0;
+        if (age <= 19) ageMult = 1.35;
+        else if (age <= 23) ageMult = 1.15;
+        else if (age <= 28) ageMult = 1.0;
+        else if (age <= 32) ageMult = 0.7;
+        else ageMult = 0.3;
+
+        let posMult = mainPos === "Delantero" ? 1.1 : (mainPos === "Centrocampista" ? 1.04 : 0.96);
+        let finalValue = Math.round((baseValue * ageMult * posMult) / 5000) * 5000;
+        return Math.max(25000, Math.min(180000000, finalValue));
+    }
+
+    function calculateEAFCSalary(media, team) {
+        if (!team) return 500;
+        let baseWeekly = 0;
+        
+        if (media < 55) {
+            baseWeekly = 400 + (media * 20);
+        } else if (media < 68) {
+            baseWeekly = 1200 + Math.pow(media - 50, 1.6) * 60;
+        } else if (media < 78) {
+            baseWeekly = 8000 + Math.pow(media - 65, 2.0) * 250;
+        } else if (media < 86) {
+            baseWeekly = 35000 + Math.pow(media - 75, 2.4) * 800;
+        } else {
+            baseWeekly = 95000 + Math.pow(media - 85, 2.8) * 2500;
+        }
+
+        let leagueMultiplier = 0.35;
+        if (team.league === LEAGUES.LOW) leagueMultiplier = 0.9;
+        if (team.league === LEAGUES.MID) leagueMultiplier = 2.4;
+        if (team.league === LEAGUES.TOP) leagueMultiplier = 5.5;
+
+        let finalSalary = Math.round(baseWeekly * leagueMultiplier / 50) * 50;
+        return Math.max(3505, Math.min(250000, finalSalary));
+    }
+
+    function formatCurrency(val) {
+        return `€${val.toLocaleString('de-DE')}`;
+    }
+
+    function formatMarketValue(val) {
+        if (val === 0) return "Libre (€0)";
+        if (val >= 1000000) return `€${(val / 1000000).toFixed(1)}M`;
+        return `€${(val / 1000).toFixed(0)}K`;
+    }
+
+    window.onload = function() {
+        renderFaceSelector();
+        updateSubPositions();
+    };
+
+    function updateSubPositions() {
+        const main = document.getElementById("inputMainPos").value;
+        const sub = document.getElementById("inputSubPos");
+        sub.innerHTML = "";
+        (SUB_POSITIONS[main] || []).forEach(opt => {
+            const el = document.createElement("option");
+            el.value = opt.code;
+            el.innerText = opt.name;
+            sub.appendChild(el);
+        });
+    }
+
+    function setGender(gender) {
+        player.gender = gender;
+        document.getElementById("genderMasc").className = gender === "Masculino" ? "gender-btn selected-masc" : "gender-btn";
+        document.getElementById("genderFem").className = gender === "Femenino" ? "gender-btn selected-fem" : "gender-btn";
+        player.selectedFace = gender === "Masculino" ? "imagenes/cara1.png" : "imagenes/cara_f1.png";
+        renderFaceSelector();
+    }
+
+    function renderFaceSelector() {
+        const container = document.getElementById("facesContainer");
+        container.innerHTML = "";
+        const list = player.gender === "Masculino" ? FACES_MASC : FACES_FEM;
+        list.forEach(f => {
+            const card = document.createElement("div");
+            card.className = `face-card ${player.selectedFace === f.filename ? 'selected' : ''}`;
+            card.onclick = () => { player.selectedFace = f.filename; renderFaceSelector(); };
+            card.innerHTML = `<img src="${f.filename}" onerror="this.src='https://via.placeholder.com/55/1e293b/ffffff?text=👤';"><span>${f.label}</span>`;
+            container.appendChild(card);
+        });
+    }
+
+    function startGame() {
+        player.name = document.getElementById("inputName").value.trim() || "Alex Garcés";
+        player.mainPos = document.getElementById("inputMainPos").value;
+        player.subPos = document.getElementById("inputSubPos").value;
+        player.team = TEAMS.find(t => t.name === document.getElementById("inputStartTeam").value) || TEAMS[0];
+
+        player.media = 60;
+        player.contractYearsLeft = 3;
+        player.weeklySalary = calculateEAFCSalary(player.media, player.team);
+        player.bankBalance = player.weeklySalary * 4;
+        player.marketValue = calculateMarketValue(player.media, player.age, player.contractYearsLeft, player.mainPos);
+
+        SHOP_ITEMS.forEach(i => i.bought = false);
+
+        document.getElementById("screenStart").classList.remove("active");
+        document.getElementById("screenGame").classList.add("active");
+        document.getElementById("statsBar").style.display = "flex";
+        document.getElementById("playerSidebar").style.display = "flex";
+
+        updateUI();
+        nextQuestion();
+    }
+
+    function updateUI() {
+        document.getElementById("sbAvatar").src = player.selectedFace;
+        document.getElementById("sbName").innerText = player.name;
+        
+        const isFreeAgent = player.contractYearsLeft === 0 || !player.team;
+
+        if (isFreeAgent) {
+            document.getElementById("sbTeam").innerText = "Agente Libre 🟢";
+            document.getElementById("sbTeam").style.color = "#22c55e";
+        } else {
+            document.getElementById("sbTeam").innerText = player.team.name;
+            document.getElementById("sbTeam").style.color = "var(--accent-blue)";
+        }
+
+        document.getElementById("sbMedia").innerText = player.media;
+        document.getElementById("sbMarketValue").innerText = formatMarketValue(player.marketValue);
+        document.getElementById("sbBankBalance").innerText = formatCurrency(player.bankBalance);
+        document.getElementById("sbPos").innerText = `${player.subPos} (${player.mainPos})`;
+
+        document.getElementById("pWeekYear").innerText = `${player.age} años (Semana ${player.week})`;
+        document.getElementById("pMarketValue").innerText = formatMarketValue(player.marketValue);
+        document.getElementById("pSalary").innerText = isFreeAgent ? "€0" : `${formatCurrency(player.weeklySalary)}`;
+        document.getElementById("pContractYears").innerText = `${player.contractYearsLeft} año(s)`;
+        document.getElementById("pMatches").innerText = player.totalMatches;
+        document.getElementById("pGoals").innerText = player.totalGoals;
+        document.getElementById("pAssists").innerText = player.totalAssists;
+
+        renderHistory("historyTableBody");
+    }
+
+    function renderHistory(targetId) {
+        const tbody = document.getElementById(targetId);
+        tbody.innerHTML = "";
+        player.history.forEach(item => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td>Año ${item.year}</td>
+                <td>${item.age}</td>
+                <td>${item.team}</td>
+                <td style="color:var(--accent-gold);">${formatMarketValue(item.val)}</td>
+                <td style="color:#34d399;">${formatCurrency(item.salary)}</td>
+                <td style="font-weight:bold; color:var(--accent-gold);">${item.media}</td>
+                <td>${item.matches}</td>
+                <td>${item.goals}</td>
+                <td>${item.assists}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function openShopScreen() {
+        document.getElementById("screenGame").classList.remove("active");
+        document.getElementById("screenTransfers").classList.remove("active");
+        document.getElementById("screenInvestments").classList.remove("active");
+        document.getElementById("screenBusiness").classList.remove("active");
+        document.getElementById("screenShop").classList.add("active");
+
+        renderShopItems();
+    }
+
+    function openInvestmentsScreen() {
+        document.getElementById("screenGame").classList.remove("active");
+        document.getElementById("screenShop").classList.remove("active");
+        document.getElementById("screenTransfers").classList.remove("active");
+        document.getElementById("screenBusiness").classList.remove("active");
+        document.getElementById("screenInvestments").classList.add("active");
+        renderInvestments();
+    }
+
+    function openBusinessScreen() {
+        document.getElementById("screenGame").classList.remove("active");
+        document.getElementById("screenShop").classList.remove("active");
+        document.getElementById("screenTransfers").classList.remove("active");
+        document.getElementById("screenInvestments").classList.remove("active");
+        document.getElementById("screenBusiness").classList.add("active");
+        renderBusinesses();
+    }
+
+    function renderShopItems() {
+        const perfGrid = document.getElementById("perfItemsGrid");
+        const luxuryGrid = document.getElementById("luxuryItemsGrid");
+        perfGrid.innerHTML = "";
+        luxuryGrid.innerHTML = "";
+
+        SHOP_ITEMS.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "shop-card";
+
+            let btnHtml = "";
+            if (item.bought) {
+                btnHtml = `<button class="btn" style="background:#334155; color:#94a3b8; cursor:not-allowed;" disabled>Adquirido ✅</button>`;
+            } else {
+                btnHtml = `<button class="btn btn-blue" onclick="buyItem('${item.id}')">Comprar 💳</button>`;
+            }
+
+            card.innerHTML = `
+                <div>
+                    <h4>${item.name}</h4>
+                    <p>${item.desc}</p>
+                </div>
+                <div>
+                    <div class="shop-price">${formatCurrency(item.cost)}</div>
+                    ${btnHtml}
+                </div>
+            `;
+
+            if (item.type === "perf") {
+                perfGrid.appendChild(card);
+            } else {
+                luxuryGrid.appendChild(card);
+            }
+        });
+    }
+
+    function buyItem(itemId) {
+        const item = SHOP_ITEMS.find(i => i.id === itemId);
+        if (!item || item.bought) return;
+
+        if (player.bankBalance < item.cost) {
+            alert("No tienes suficiente dinero en tu cuenta bancaria para este capricho.");
+            return;
+        }
+
+        player.bankBalance -= item.cost;
+        item.bought = true;
+
+        if (item.type === "perf") {
+            player.media = Math.min(99, player.media + item.mediaBoost);
+            player.marketValue = calculateMarketValue(player.media, player.age, player.contractYearsLeft, player.mainPos);
+        }
+
+        updateUI();
+        renderShopItems();
+    }
+
+    function renderInvestments() {
+        const grid = document.getElementById("investGrid");
+        grid.innerHTML = "";
+        INVESTMENT_OPTIONS.forEach(inv => {
+            const card = document.createElement("div");
+            card.className = "shop-card";
+            card.innerHTML = `
+                <div>
+                    <h4>${inv.name}</h4>
+                    <p>Riesgo: <strong>${inv.risk}</strong><br>${inv.desc}</p>
+                </div>
+                <div>
+                    <div class="shop-price">Retorno aprox: ${(inv.returnRate * 100)}% anual</div>
+                    <button class="btn btn-blue" onclick="makeInvestment('${inv.id}')">Invertir 📈</button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        let totalInv = playerInvestments.reduce((acc, curr) => acc + curr.amount, 0);
+        document.getElementById("activeInvestmentsSummary").innerHTML = `<strong>Capital total invertido actualmente:</strong> ${formatCurrency(totalInv)}`;
+    }
+
+    function makeInvestment(invId) {
+        const invData = INVESTMENT_OPTIONS.find(i => i.id === invId);
+        const amount = parseInt(document.getElementById("investAmountInput").value);
+
+        if (isNaN(amount) || amount <= 0) {
+            alert("Introduce una cantidad válida para invertir.");
+            return;
+        }
+        if (player.bankBalance < amount) {
+            alert("No tienes suficiente dinero en tu cuenta bancaria.");
+            return;
+        }
+
+        player.bankBalance -= amount;
+        playerInvestments.push({ id: invId, amount: amount, rate: invData.returnRate });
+        updateUI();
+        renderInvestments();
+    }
+
+    function renderBusinesses() {
+        const grid = document.getElementById("businessGrid");
+        grid.innerHTML = "";
+        BUSINESS_OPTIONS.forEach(biz => {
+            const card = document.createElement("div");
+            card.className = "shop-card";
+            let btnHtml = biz.owned 
+                ? `<button class="btn" style="background:#334155; color:#94a3b8; cursor:not-allowed;" disabled>En Propiedad ✅</button>`
+                : `<button class="btn btn-gold" onclick="buyBusiness('${biz.id}')">Comprar Negocio 🏢</button>`;
+
+            card.innerHTML = `
+                <div>
+                    <h4>${biz.name}</h4>
+                    <p>Beneficio semanal estimado: <strong style="color:#34d399;">${formatCurrency(biz.weeklyIncome)} /sem</strong></p>
+                </div>
+                <div>
+                    <div class="shop-price">${formatCurrency(biz.cost)}</div>
+                    ${btnHtml}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function buyBusiness(bizId) {
+        const biz = BUSINESS_OPTIONS.find(b => b.id === bizId);
+        if (!biz || biz.owned) return;
+
+        if (player.bankBalance < biz.cost) {
+            alert("No tienes suficiente capital en el banco para adquirir este negocio.");
+            return;
+        }
+
+        player.bankBalance -= biz.cost;
+        biz.owned = true;
+        activeBusinesses.push(biz);
+        updateUI();
+        renderBusinesses();
+    }
+
+    function processWeeklyIncomes() {
+        const isFreeAgent = player.contractYearsLeft === 0 || !player.team;
+        let weeklyTotal = isFreeAgent ? 0 : player.weeklySalary;
+
+        activeBusinesses.forEach(biz => {
+            weeklyTotal += biz.weeklyIncome;
+        });
+
+        playerInvestments.forEach(inv => {
+            let weeklyGainRate = (inv.rate / 52);
+            if (inv.id === "inv_acciones") weeklyGainRate *= (0.5 + Math.random() * 1.0);
+            if (inv.id === "inv_cripto") weeklyGainRate *= (0.1 + Math.random() * 2.2);
+            
+            let gain = inv.amount * weeklyGainRate;
+            inv.amount += Math.round(gain);
+        });
+
+        player.bankBalance += Math.round(weeklyTotal);
+    }
+
+    function nextQuestion() {
+        document.getElementById("feedbackBox").style.display = "none";
+        if (player.age >= 38) { endCareer(); return; }
+
+        const optsDiv = document.getElementById("qOptions");
+        optsDiv.innerHTML = "";
+
+        if (player.injuryWeeksLeft > 0) {
+            document.getElementById("qCategory").className = "question-tag injury-tag";
+            document.getElementById("qCategory").innerText = `Enfermería / Lesión (${player.injuryWeeksLeft} sem. restantes)`;
+            document.getElementById("qText").innerText = `Estás de baja médica recuperándote de tu lesión. No puedes disputar partidos ni entrenar con el grupo hasta recibir el alta del doctor.`;
+
+            const btn = document.createElement("button");
+            btn.className = "btn btn-red";
+            btn.innerText = "Avanzar semana de recuperación 🏥";
+            btn.onclick = () => advanceInjuryWeek();
+            optsDiv.appendChild(btn);
+            return;
+        }
+
+        document.getElementById("qCategory").className = "question-tag";
+        const isFreeAgent = player.contractYearsLeft === 0 || !player.team;
+        const activeBank = isFreeAgent ? FREE_AGENT_QUESTIONS_BANK : MATCH_QUESTIONS_BANK;
+        const q = activeBank[Math.floor(Math.random() * activeBank.length)];
+
+        document.getElementById("qCategory").innerText = `${q.category} (Semana ${player.week})`;
+        document.getElementById("qText").innerText = q.text;
+
+        const randomizedOptions = shuffleArray(q.options);
+
+        randomizedOptions.forEach((opt, idx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = `${idx + 1}. ${opt.text}`;
+            btn.onclick = () => selectOption(opt);
+            optsDiv.appendChild(btn);
+        });
+    }
+
+    function advanceInjuryWeek() {
+        player.injuryWeeksLeft--;
+        player.week++;
+        
+        processWeeklyIncomes();
+
+        let seasonMsg = "";
+        let triggerNewYear = false;
+
+        if (player.week > 4) {
+            player.week = 1;
+            let matches = Math.max(2, 38 - (player.injuryWeeksLeft * 4));
+            let stats = calculateRealisticStats(matches, player.media, player.mainPos);
+            
+            player.totalMatches += matches;
+            player.totalGoals += stats.goals;
+            player.totalAssists += stats.assists;
+
+            const isFreeAgent = player.contractYearsLeft === 0 || !player.team;
+            if (!isFreeAgent) {
+                player.contractYearsLeft = Math.max(0, player.contractYearsLeft - 1);
+            }
+
+            player.history.push({
+                year: player.year, 
+                age: player.age, 
+                team: isFreeAgent ? "Sin Club / Agente Libre" : player.team.name,
+                val: player.marketValue, 
+                salary: isFreeAgent ? 0 : player.weeklySalary, 
+                media: player.media,
+                matches: matches,
+                goals: stats.goals, 
+                assists: stats.assists
+            });
+
+            seasonMsg = `<br><br>🏁 <strong>Fin Temporada ${player.year}:</strong> Estuviste lesionado gran parte del año (${matches} PJ | ${stats.goals} Goles | ${stats.assists} Asist).`;
+            if (!isFreeAgent && player.contractYearsLeft === 0) {
+                seasonMsg += `<br>⚠️ <strong>¡Tu contrato ha expirado!</strong>`;
+            }
+
+            player.age++; 
+            player.year++;
+            triggerNewYear = true;
+
+            if (player.age >= 32) {
+                let declineAmount = Math.min(6, Math.floor((player.age - 31) * 1.5));
+                player.media = Math.max(45, player.media - declineAmount);
+            }
+        }
+
+        const fb = document.getElementById("feedbackBox");
+        fb.style.display = "block";
+        fb.className = "feedback-box injury";
+        fb.innerHTML = `<strong>Parte médico:</strong> Semana de recuperación completada. Te quedan <strong>${player.injuryWeeksLeft} semanas</strong> de baja.${seasonMsg}`;
+
+        updateUI();
+
+        if (triggerNewYear) {
+            document.getElementById("qOptions").innerHTML = `<button class="btn btn-gold" style="margin-top:10px;" onclick="openTransfersScreen()">Ir al Mercado de Fichajes y Contratos 🔄</button>`;
+        } else {
+            nextQuestion();
+        }
+    }
+
+    function calculateRealisticStats(matches, media, mainPos) {
+        let goalRate = 0.05;
+        let assistRate = 0.05;
+
+        if (mainPos === "Delantero") {
+            goalRate = 0.35 + ((media - 50) * 0.025);
+            assistRate = 0.15 + ((media - 50) * 0.012);
+        } else if (mainPos === "Centrocampista") {
+            goalRate = 0.12 + ((media - 50) * 0.012);
+            assistRate = 0.30 + ((media - 50) * 0.022);
+        } else if (mainPos === "Defensa") {
+            goalRate = 0.04 + ((media - 50) * 0.005);
+            assistRate = 0.08 + ((media - 50) * 0.008);
+        } else {
+            goalRate = 0.0;
+            assistRate = 0.01;
+        }
+
+        let goals = Math.max(0, Math.round(matches * goalRate * (0.8 + Math.random() * 0.4)));
+        let assists = Math.max(0, Math.round(matches * assistRate * (0.8 + Math.random() * 0.4)));
+
+        if (mainPos === "Portero") { goals = 0; assists = 0; }
+        return { goals, assists };
+    }
+
+    function selectOption(opt) {
+        let rawGain = opt.mediaChange;
+        player.mediaAccumulator += rawGain;
+
+        let mediaDelta = 0;
+        if (player.mediaAccumulator >= 1) {
+            mediaDelta = Math.floor(player.mediaAccumulator);
+            player.mediaAccumulator -= mediaDelta;
+        } else if (player.mediaAccumulator <= -1) {
+            mediaDelta = Math.ceil(player.mediaAccumulator);
+            player.mediaAccumulator -= mediaDelta;
+        }
+
+        let injuryMsg = "";
+        let isInjuryBox = false;
+
+        if (opt.injuryRisk && Math.random() < 0.10) {
+            mediaDelta = -1;
+            isInjuryBox = true;
+            player.injuryWeeksLeft = 2;
+            injuryMsg = "<br>🏥 <strong>¡Lesión!</strong> Una entrada fuerte te ha costado una baja de <strong>2 semanas</strong>.";
+        }
+
+        player.media = Math.max(45, Math.min(99, player.media + mediaDelta));
+        player.questionsAnswered++;
+        player.week++;
+
+        processWeeklyIncomes();
+
+        player.marketValue = calculateMarketValue(player.media, player.age, player.contractYearsLeft, player.mainPos);
+
+        let seasonMsg = "";
+        let triggerNewYear = false;
+
+        if (player.week > 4) {
+            player.week = 1;
+            let matches = Math.round(34 + Math.random() * 6);
+            let stats = calculateRealisticStats(matches, player.media, player.mainPos);
+
+            player.totalMatches += matches;
+            player.totalGoals += stats.goals;
+            player.totalAssists += stats.assists;
+
+            const isFreeAgent = player.contractYearsLeft === 0 || !player.team;
+            if (!isFreeAgent) {
+                player.contractYearsLeft = Math.max(0, player.contractYearsLeft - 1);
+            }
+
+            player.history.push({
+                year: player.year, 
+                age: player.age, 
+                team: isFreeAgent ? "Sin Club / Agente Libre" : player.team.name,
+                val: player.marketValue, 
+                salary: isFreeAgent ? 0 : player.weeklySalary, 
+                media: player.media,
+                matches: matches,
+                goals: stats.goals, 
+                assists: stats.assists
+            });
+
+            if (isFreeAgent) {
+                seasonMsg = `<br><br>🏁 <strong>Fin Temporada ${player.year}:</strong> Has pasado el año sin equipo.<br>⚠️ ¡Es hora de fichar por un club!`;
+            } else {
+                seasonMsg = `<br><br>🏁 <strong>Fin Temporada ${player.year}:</strong> ${matches} PJ | ${stats.goals} Goles | ${stats.assists} Asist.`;
+                if (player.contractYearsLeft === 0) {
+                    seasonMsg += `<br>⚠️ <strong>¡Tu contrato ha expirado!</strong> Debes revisar tu renovación o fichar por otro equipo.`;
+                }
+            }
+
+            player.age++; 
+            player.year++;
+            triggerNewYear = true;
+        }
+
+        const fb = document.getElementById("feedbackBox");
+        fb.style.display = "block";
+        if (isInjuryBox) {
+            fb.className = "feedback-box injury";
+        } else {
+            fb.className = mediaDelta >= 0 ? "feedback-box positive" : "feedback-box negative";
+        }
+        fb.innerHTML = `<strong>Resultado semanal:</strong> ${opt.msg}${injuryMsg}${seasonMsg}`;
+
+        updateUI();
+
+        if (triggerNewYear) {
+            document.getElementById("qOptions").innerHTML = `<button class="btn btn-gold" style="margin-top:10px;" onclick="openTransfersScreen()">Ir al Mercado de Fichajes y Contratos 🔄</button>`;
+        } else {
+            nextQuestion();
+        }
+    }
+
+    function openTransfersScreen() {
+        document.getElementById("screenShop").classList.remove("active");
+        document.getElementById("screenInvestments").classList.remove("active");
+        document.getElementById("screenBusiness").classList.remove("active");
+        document.getElementById("screenGame").classList.remove("active");
+        document.getElementById("screenTransfers").classList.add("active");
+
+        const renewalDiv = document.getElementById("renewalContainer");
+        const listDiv = document.getElementById("offersList");
+        renewalDiv.innerHTML = "";
+        listDiv.innerHTML = "";
+
+        const isFreeAgent = player.contractYearsLeft === 0 || !player.team;
+
+        if (!isFreeAgent) {
+            const meetsPerformance = player.media >= player.team.minMedia;
+
+            if (meetsPerformance) {
+                let renewalSalary = Math.round(calculateEAFCSalary(player.media, player.team) * 1.15);
+                let renewalYears = Math.floor(Math.random() * 3) + 2; 
+                renewalOffer = { team: player.team, salary: renewalSalary, duration: renewalYears };
+
+                renewalDiv.innerHTML = `
+                    <div class="section-title">📝 Oferta de Renovación por Alto Rendimiento</div>
+                    <div class="offer-card" style="border-color: var(--accent-gold);">
+                        <div>
+                            <h4>${player.team.name} (Actual)</h4>
+                            <span class="league-badge ${player.team.league.tierClass}">${player.team.league.name}</span>
+                            <div class="offer-details">
+                                <span>💰 Nuevo Sueldo: <strong style="color: #34d399;">${formatCurrency(renewalSalary)}/sem</strong></span>
+                                <span>📄 Ampliación: <strong style="color: var(--accent-gold);">+${renewalYears} años</strong></span>
+                            </div>
+                        </div>
+                        <button class="btn btn-gold" style="width:auto; padding:10px 15px;" onclick="acceptRenewal()">Renovar ✍️</button>
+                    </div>
+                `;
+            } else {
+                renewalDiv.innerHTML = `
+                    <div class="section-title" style="color:var(--accent-red);">❌ Renovación Denegada por el Club</div>
+                    <div style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--accent-red); padding:15px; border-radius:8px; margin-bottom:15px; font-size:0.9rem;">
+                        <strong>${player.team.name}</strong> ha decidido no ofrecerte la renovación debido a que tu media actual (${player.media}) está por debajo de las exigencias del club (Mínimo: ${player.team.minMedia}). Debes buscar otro equipo en el mercado.
+                    </div>
+                `;
+                player.contractYearsLeft = 0;
+            }
+        } else {
+            renewalDiv.innerHTML = `<div style="color: var(--accent-red); margin-bottom: 15px; font-size: 0.9rem;">⚠️ No tienes equipo actualmente. Debes fichar por un club para continuar ingresando sueldo.</div>`;
+        }
+
+        let eligible = TEAMS.filter(t => {
+            if (!isFreeAgent && t.name === player.team.name && player.media >= player.team.minMedia) return false;
+            if (player.marketValue > t.league.maxAffordableValue) return false;
+            return player.media >= t.minMedia - 5;
+        });
+
+        if (eligible.length === 0) {
+            eligible = TEAMS.filter(t => player.media >= t.minMedia - 8);
+        }
+
+        generatedOffers = shuffleArray(eligible).slice(0, 3).map(team => {
+            let duration = Math.floor(Math.random() * 3) + 2;
+            let salary = calculateEAFCSalary(player.media, team);
+            
+            let transferFee = 0;
+            if (!isFreeAgent) {
+                let multiplier = 0.9 + (Math.random() * 0.3);
+                transferFee = Math.round((player.marketValue * multiplier) / 10000) * 10000;
+            }
+
+            return { team, salary, duration, transferFee };
+        });
+
+        generatedOffers.forEach((off, idx) => {
+            const card = document.createElement("div");
+            card.className = "offer-card";
+            
+            let transferText = off.transferFee === 0 
+                ? `<strong style="color: #4ade80;">Agente Libre (Gratis)</strong>` 
+                : `<strong style="color: var(--accent-gold);">${formatMarketValue(off.transferFee)}</strong>`;
+
+            card.innerHTML = `
+                <div>
+                    <h4>${off.team.name}</h4>
+                    <span class="league-badge ${off.team.league.tierClass}">${off.team.league.name}</span>
+                    <div class="offer-details">
+                        <span>🏷️ Traspaso: ${transferText}</span>
+                        <span>💰 Sueldo: <strong style="color: #34d399;">${formatCurrency(off.salary)}/sem</strong></span>
+                        <span>📄 Duración: <strong style="color: var(--accent-gold);">${off.duration} año(s)</strong></span>
+                    </div>
+                </div>
+                <button class="btn btn-blue" style="width:auto; padding:10px 15px;" onclick="acceptContract(${idx})">Fichar 🖋️</button>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function acceptRenewal() {
+        if (!renewalOffer) return;
+        player.weeklySalary = renewalOffer.salary;
+        player.contractYearsLeft += renewalOffer.duration;
+        player.marketValue = calculateMarketValue(player.media, player.age, player.contractYearsLeft, player.mainPos);
+
+        updateUI();
+        returnToGame();
+    }
+
+    function acceptContract(idx) {
+        let off = generatedOffers[idx];
+        player.team = off.team;
+        player.weeklySalary = off.salary;
+        player.contractYearsLeft = off.duration;
+        player.marketValue = calculateMarketValue(player.media, player.age, player.contractYearsLeft, player.mainPos);
+
+        updateUI();
+        returnToGame();
+    }
+
+    function returnToGame() {
+        document.getElementById("screenShop").classList.remove("active");
+        document.getElementById("screenInvestments").classList.remove("active");
+        document.getElementById("screenBusiness").classList.remove("active");
+        document.getElementById("screenTransfers").classList.remove("active");
+        document.getElementById("screenGame").classList.add("active");
+        nextQuestion();
+    }
+
+    function endCareer() {
+        document.getElementById("screenGame").classList.remove("active");
+        document.getElementById("screenEnd").classList.add("active");
+        document.getElementById("endSummary").innerHTML = `<strong>${player.name}</strong> se retira a los ${player.age} años en ${player.team ? player.team.name : 'Sin Club'}.<br>Capital total acumulado en Banco: <strong style="color:#4ade80;">${formatCurrency(player.bankBalance)}</strong><br>Partidos Totales: ${player.totalMatches} | Goles: ${player.totalGoals} | Asistencias: ${player.totalAssists}`;
+        renderHistory("endHistoryTableBody");
+    }
+
+    // Registro del Service Worker para funcionamiento offline (PWA)
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker
+                .register("sw.js")
+                .then((reg) => console.log("Service Worker registrado:", reg.scope))
+                .catch((err) => console.error("Error registrando el Service Worker:", err));
+        });
+    }
+</script>
+
+</body>
+</html>
