@@ -489,23 +489,6 @@
             .sidebar-name { font-size: 1.15rem; }
             .header h1 { font-size: 1rem; }
         }
-        /* ===== FORZAR HORIZONTAL ===== */
-        /* Si el navegador no soporta bloquear la orientación (p.ej. iOS Safari),
-           rotamos visualmente todo el contenido para que se vea en horizontal
-           aunque el móvil se sostenga en vertical. */
-        @media screen and (orientation: portrait) {
-            html {
-                transform: rotate(-90deg);
-                transform-origin: left top;
-                width: 100vh;
-                height: 100vw;
-                overflow-x: hidden;
-                overflow-y: auto;
-                position: absolute;
-                top: 100%;
-                left: 0;
-            }
-        }
     </style>
 </head>
 <body>
@@ -1830,17 +1813,6 @@
         document.getElementById("endSummary").innerHTML = `<strong>${player.name}</strong> se retira a los ${player.age} años en ${player.team ? player.team.name : 'Sin Club'}.<br>Capital total acumulado en Banco: <strong style="color:#4ade80;">${formatCurrency(player.bankBalance)}</strong><br>Partidos Totales: ${player.totalMatches} | Goles: ${player.totalGoals} | Asistencias: ${player.totalAssists}`;
         renderHistory("endHistoryTableBody");
     }
-
-    // Intentar forzar orientación horizontal (funciona en Android al abrir como app instalada)
-    function forzarHorizontal() {
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock("landscape").catch(() => {
-                // Si falla (no instalada como PWA, iOS, etc.) se usa el fallback CSS que rota la pantalla
-            });
-        }
-    }
-    window.addEventListener("load", forzarHorizontal);
-    document.addEventListener("fullscreenchange", forzarHorizontal);
 
     // Registro del Service Worker para funcionamiento offline (PWA)
     if ("serviceWorker" in navigator) {
