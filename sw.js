@@ -1,5 +1,5 @@
 // Service Worker - Simulador de Carrera Futbolística Pro
-const CACHE_NAME = "simulador-futbol-cache-v2";
+const CACHE_NAME = "simulador-futbol-cache-v3";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
