@@ -429,6 +429,66 @@
             color: var(--accent-green);
             margin-bottom: 10px;
         }
+
+        /* ===== RESPONSIVE MÓVIL ===== */
+        html, body { overflow-x: hidden; }
+
+        @media (max-width: 820px) {
+            body { padding: 10px; align-items: stretch; }
+
+            .game-wrapper {
+                flex-direction: column;
+                max-width: 100%;
+            }
+
+            .player-sidebar {
+                width: 100%;
+                padding: 15px;
+            }
+
+            .sidebar-avatar { width: 90px; height: 90px; }
+
+            .main-panel { width: 100%; min-width: 0; }
+
+            .header h1 { font-size: 1.15rem; }
+
+            .stats-bar {
+                justify-content: space-between;
+                padding: 10px;
+            }
+
+            .stat-item { flex: 1 1 28%; }
+            .stat-label { font-size: 0.62rem; }
+            .stat-value { font-size: 0.8rem; }
+
+            .main-content { padding: 15px; }
+
+            .pos-grid { grid-template-columns: 1fr; gap: 10px; }
+
+            .gender-options { flex-wrap: wrap; }
+
+            .shop-grid { grid-template-columns: 1fr; }
+
+            .offer-card {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .offer-card button { width: 100%; }
+
+            .history-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .history-table { font-size: 0.78rem; min-width: 560px; }
+
+            .question-text { font-size: 1rem; }
+
+            .sidebar-media-value { font-size: 2rem; }
+        }
+
+        @media (max-width: 420px) {
+            .stat-item { flex: 1 1 45%; }
+            .sidebar-name { font-size: 1.15rem; }
+            .header h1 { font-size: 1rem; }
+        }
     </style>
 </head>
 <body>
